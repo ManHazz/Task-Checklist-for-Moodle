@@ -1,7 +1,7 @@
 import { normaliseSite, originPattern, siteName } from './src/config.js';
 import { get, set, remove, getSettings, getSite } from './src/storage.js';
 import { AuthError } from './src/api.js';
-import { startConnect, handleAppRedirect, disconnect, scrubAuth, LAUNCH_PATH } from './src/auth.js';
+import { startConnect, handleAppRedirect, disconnect, scrubAuth, LAUNCH_PATH, LAUNCH_URL_FILTER } from './src/auth.js';
 import { fetchEvents, normalise, merge, isOpen, safeUrl } from './src/tasks.js';
 import { checkReminders } from './src/reminders.js';
 
@@ -102,7 +102,7 @@ chrome.webRequest.onBeforeRedirect.addListener(
     if (!site || !d.url.startsWith(`${site}${LAUNCH_PATH}`)) return;
     onAppRedirect(d.redirectUrl, d.tabId);
   },
-  { urls: [`https://*/*${LAUNCH_PATH}*`] },
+  { urls: [LAUNCH_URL_FILTER] },
 );
 
 chrome.notifications.onClicked.addListener(async (id) => {

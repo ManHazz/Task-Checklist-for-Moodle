@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { md5 } from '../src/md5.js';
-import { parseAppRedirect, siteHashMatches, isPendingFresh } from '../src/auth.js';
+import { parseAppRedirect, siteHashMatches, isPendingFresh, LAUNCH_PATH, LAUNCH_URL_FILTER } from '../src/auth.js';
 import { flatten } from '../src/api.js';
 import { normalise, merge, group, relative, safeUrl } from '../src/tasks.js';
 import { PRESETS, normaliseSite, originPattern, siteName } from '../src/config.js';
@@ -32,6 +32,22 @@ test('app redirect parse + site hash check', () => {
   const noPriv = parseAppRedirect(`moodlemobile://token=${encodeURIComponent(Buffer.from(`${sitehash}:::T`).toString('base64'))}`);
   assert.deepEqual(noPriv, { sitehash, token: 'T' });
   assert.equal(parseAppRedirect('moodlemobile://nothing'), null);
+});
+
+// Chrome match-pattern semantics for `https://<host>/<path>`: host `*` is any
+// host, `*` in the path is any run of characters (including none).
+function matchPattern(pattern, url) {
+  const [, host, path] = pattern.match(/^https:\/\/([^/]+)(\/.*)$/);
+  const esc = (s) => s.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
+  const hostRe = host === '*' ? '[^/]+' : esc(host);
+  return new RegExp(`^https://${hostRe}${esc(path)}$`).test(url);
+}
+
+test('launch.php filter matches root and sub-path sites', () => {
+  const q = '?service=moodle_mobile_app&passport=x&urlscheme=moodlemobile';
+  assert.ok(matchPattern(LAUNCH_URL_FILTER, `${SITE}${LAUNCH_PATH}${q}`), 'root install');
+  assert.ok(matchPattern(LAUNCH_URL_FILTER, `https://uni.example/moodle${LAUNCH_PATH}${q}`), 'sub-path install');
+  assert.ok(!matchPattern(LAUNCH_URL_FILTER, `${SITE}/my/`));
 });
 
 test('pending login expires after 10 minutes', () => {

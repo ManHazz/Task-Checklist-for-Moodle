@@ -5,6 +5,10 @@ import { md5 } from './md5.js';
 import { get, set, remove, getSite } from './storage.js';
 
 export const LAUNCH_PATH = '/admin/tool/mobile/launch.php';
+// webRequest match pattern for launch.php on any https site, at the root or
+// under a path (/moodle/admin/...). The leading `*` must absorb the slash:
+// `/*/admin/...` would only match `//admin/...`.
+export const LAUNCH_URL_FILTER = `https://*/*${LAUNCH_PATH.slice(1)}*`;
 
 function randomPassport() {
   const a = new Uint32Array(3);
