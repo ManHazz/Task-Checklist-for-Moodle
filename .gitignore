@@ -1,4 +1,5 @@
-# Packaged builds
+# Packaged builds and release drafts
+dist/
 *.zip
 *.crx
 *.pem
