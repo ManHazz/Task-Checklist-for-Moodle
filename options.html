@@ -22,12 +22,13 @@
 
   <fieldset>
     <legend>Moodle site</legend>
-    <label for="site">Site address</label>
+    <p id="welcome" hidden>Welcome! Pick your university below, or type your Moodle address, then click <b>Save</b>.</p>
+    <div class="row" id="presets"></div>
+    <label for="site" style="margin-top:10px">Site address</label>
     <div class="row">
-      <input id="site" type="url" placeholder="https://ulearn.utp.edu.my" spellcheck="false">
-      <button id="resetSite" type="button">Use uLearn (UTP)</button>
+      <input id="site" type="url" placeholder="https://moodle.your-university.edu" spellcheck="false">
     </div>
-    <p class="muted">Any Moodle 4.x site with the Moodle app enabled works. Changing the site clears tasks and the connection for the old one.</p>
+    <p class="muted">Any Moodle 4.x site with the Moodle app enabled works. Copy the address from your browser while on your Moodle Dashboard. Changing the site clears tasks and the connection for the old one.</p>
   </fieldset>
 
   <fieldset>

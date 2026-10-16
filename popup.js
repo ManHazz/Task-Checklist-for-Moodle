@@ -1,6 +1,6 @@
 import { group, relative, safeUrl } from './src/tasks.js';
 import { getSite } from './src/storage.js';
-import { DEFAULT_SITE } from './src/config.js';
+import { siteName } from './src/config.js';
 
 const $ = (id) => document.getElementById(id);
 const send = (cmd, extra = {}) => chrome.runtime.sendMessage({ cmd, ...extra });
@@ -39,8 +39,9 @@ function section(title, tasks, now, cls = '') {
 async function render() {
   const { tasks = {}, status, auth } = await chrome.storage.local.get(['tasks', 'status', 'auth']);
   site = await getSite();
-  const host = new URL(site).host;
-  $('title').textContent = host === new URL(DEFAULT_SITE).host ? 'uLearn tasks' : `${host} tasks`;
+  const host = siteName(site);
+  $('title').textContent = `${host} tasks`;
+  $('sync').disabled = !site;
   const now = Date.now();
   const g = group(tasks, now);
   const list = $('list');
@@ -61,7 +62,12 @@ async function render() {
 
   const banner = $('banner');
   banner.replaceChildren();
-  if (!auth?.token) {
+  if (!site || status?.needsSetup) {
+    const btn = el('button', { className: 'primary', textContent: site ? 'Open Settings' : 'Set up' });
+    btn.addEventListener('click', () => chrome.runtime.openOptionsPage());
+    banner.append(el('div', { textContent: site ? status.error : 'Choose your Moodle site to get started.' }), el('div', { style: 'margin-top:6px' }, btn));
+    banner.hidden = false;
+  } else if (!auth?.token) {
     const btn = el('button', { className: 'primary', textContent: 'Connect' });
     btn.addEventListener('click', () => send('connect'));
     const msg = status?.needsLogin

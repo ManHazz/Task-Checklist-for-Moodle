@@ -5,7 +5,9 @@ import { md5 } from '../src/md5.js';
 import { parseAppRedirect, siteHashMatches, isPendingFresh } from '../src/auth.js';
 import { flatten } from '../src/api.js';
 import { normalise, merge, group, relative, safeUrl } from '../src/tasks.js';
-import { DEFAULT_SITE as SITE, normaliseSite, originPattern } from '../src/config.js';
+import { PRESETS, normaliseSite, originPattern, siteName } from '../src/config.js';
+
+const SITE = PRESETS[0].site;
 
 const norm = (e) => normalise(e, SITE);
 
@@ -62,6 +64,12 @@ test('normaliseSite cleans user input', () => {
     assert.throws(() => normaliseSite(bad), Error, bad);
   }
   assert.equal(originPattern('https://uni.example/moodle'), 'https://uni.example/*');
+});
+
+test('siteName uses preset name, else host', () => {
+  assert.equal(siteName(SITE), 'uLearn');
+  assert.equal(siteName('https://moodle.other.edu'), 'moodle.other.edu');
+  assert.equal(siteName(null), 'Moodle');
 });
 
 test('flatten builds PHP-style keys', () => {

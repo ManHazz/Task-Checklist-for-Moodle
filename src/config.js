@@ -1,9 +1,12 @@
-// Default Moodle site. Users can point the extension at any Moodle 4.x site
-// in Settings; the value must match that site's $CFG->wwwroot.
-export const DEFAULT_SITE = 'https://ulearn.utp.edu.my';
+// One-click choices on the setup screen. No site is built in: the user picks
+// one (or types any Moodle 4.x address) on first run. The value must match
+// that site's $CFG->wwwroot.
+export const PRESETS = [
+  { label: 'uLearn (UTP)', name: 'uLearn', site: 'https://ulearn.utp.edu.my' },
+];
 
 export const DEFAULT_SETTINGS = {
-  site: DEFAULT_SITE,
+  site: null,
   // Reminder offsets in minutes before the due time.
   offsets: [4320, 1440, 360, 60],
   // How often to pull tasks from the site.
@@ -43,4 +46,10 @@ export function normaliseSite(input) {
 // Host permission pattern for a site, e.g. https://moodle.example.edu/*
 export function originPattern(site) {
   return `${new URL(site).origin}/*`;
+}
+
+// Short display name: the preset name, or the host.
+export function siteName(site) {
+  if (!site) return 'Moodle';
+  return PRESETS.find((p) => p.site === site)?.name ?? new URL(site).host;
 }

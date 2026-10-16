@@ -1,15 +1,23 @@
-import { OFFSET_CHOICES, DEFAULT_SITE, normaliseSite, originPattern } from './src/config.js';
+import { OFFSET_CHOICES, PRESETS, normaliseSite, originPattern, siteName } from './src/config.js';
 import { getSettings } from './src/storage.js';
 
 const $ = (id) => document.getElementById(id);
 const send = (cmd, extra = {}) => chrome.runtime.sendMessage({ cmd, ...extra });
 
-let savedSite = DEFAULT_SITE;
+let savedSite = null;
 
 async function renderConnection() {
   const { auth, status } = await chrome.storage.local.get(['auth', 'status']);
   const conn = $('conn');
-  const host = new URL(savedSite).host;
+  $('welcome').hidden = Boolean(savedSite);
+  if (!savedSite) {
+    conn.textContent = 'Choose your Moodle site above first.';
+    $('connect').disabled = true;
+    $('disconnect').disabled = true;
+    return;
+  }
+  $('connect').disabled = false;
+  const host = siteName(savedSite);
   if (auth?.token) {
     conn.textContent = `Connected to ${host} since ${new Date(auth.connectedAt).toLocaleString()}.`;
   } else {
@@ -23,7 +31,12 @@ async function renderConnection() {
 async function init() {
   const s = await getSettings();
   savedSite = s.site;
-  $('site').value = s.site;
+  $('site').value = s.site ?? '';
+  $('presets').replaceChildren(...PRESETS.map((p) => {
+    const b = Object.assign(document.createElement('button'), { type: 'button', textContent: p.label });
+    b.addEventListener('click', () => { $('site').value = p.site; });
+    return b;
+  }));
   $('offsets').replaceChildren(...OFFSET_CHOICES.map(({ minutes, label }) => {
     const box = Object.assign(document.createElement('input'), { type: 'checkbox', value: minutes, checked: s.offsets.includes(minutes) });
     const l = document.createElement('label');
@@ -45,11 +58,10 @@ $('save').addEventListener('click', async () => {
   let site;
   try { site = normaliseSite($('site').value); } catch (e) { return showSaved(e.message, true); }
 
-  // Ask for access to a new site while the click still counts as a user gesture.
-  if (site !== savedSite) {
-    const granted = await chrome.permissions.request({ origins: [originPattern(site)] });
-    if (!granted) return showSaved(`Access to ${new URL(site).host} was not allowed.`, true);
-  }
+  // Ask for site access while the click still counts as a user gesture.
+  // Resolves at once without a prompt when access is already granted.
+  const granted = await chrome.permissions.request({ origins: [originPattern(site)] });
+  if (!granted) return showSaved(`Access to ${new URL(site).host} was not allowed.`, true);
 
   const offsets = [...document.querySelectorAll('#offsets input:checked')].map((b) => Number(b.value));
   const r = await send('saveSettings', {
@@ -62,7 +74,6 @@ $('save').addEventListener('click', async () => {
   renderConnection();
 });
 
-$('resetSite').addEventListener('click', () => { $('site').value = DEFAULT_SITE; });
 $('connect').addEventListener('click', () => send('connect'));
 $('disconnect').addEventListener('click', () => send('disconnect'));
 chrome.storage.onChanged.addListener((_c, area) => { if (area === 'local') renderConnection(); });

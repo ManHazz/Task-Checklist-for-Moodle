@@ -14,6 +14,10 @@ function randomPassport() {
 
 export async function startConnect() {
   const site = await getSite();
+  if (!site) {
+    chrome.runtime.openOptionsPage();
+    return;
+  }
   const passport = randomPassport();
   // Write the pending state before opening the tab: an already logged-in user
   // is redirected almost instantly.

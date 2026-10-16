@@ -75,6 +75,7 @@ async function callWithSession(site, fn, args, retried = false) {
 // Returns { data, via: 'token' | 'session' }.
 export async function callWs(fn, args) {
   const site = await getSite();
+  if (!site) throw new Error('Choose your Moodle site in Settings.');
   const auth = await get('auth');
   // A token is only valid for the site that issued it.
   if (auth?.token && (!auth.site || auth.site === site)) {

@@ -1,4 +1,4 @@
-import { DEFAULT_SITE, normaliseSite, originPattern } from './src/config.js';
+import { normaliseSite, originPattern, siteName } from './src/config.js';
 import { get, set, remove, getSettings, getSite } from './src/storage.js';
 import { AuthError } from './src/api.js';
 import { startConnect, handleAppRedirect, disconnect, scrubAuth, LAUNCH_PATH } from './src/auth.js';
@@ -13,7 +13,12 @@ async function scheduleAlarms() {
   await chrome.alarms.create('remind', { periodInMinutes: REMIND_MINUTES });
 }
 
-chrome.runtime.onInstalled.addListener(() => { scrubAuth(); scheduleAlarms(); });
+chrome.runtime.onInstalled.addListener(async () => {
+  await scrubAuth();
+  await scheduleAlarms();
+  // First run (or upgrade from a version with a built-in site): open setup.
+  if (!(await getSite())) chrome.runtime.openOptionsPage();
+});
 chrome.runtime.onStartup.addListener(scheduleAlarms);
 
 chrome.alarms.onAlarm.addListener((alarm) => {
@@ -29,8 +34,14 @@ function sync() {
 
 async function doSync() {
   const now = Date.now();
+  const site = await getSite();
+  if (!site || !(await chrome.permissions.contains({ origins: [originPattern(site)] }))) {
+    const error = site ? `Allow access to ${new URL(site).host} in Settings.` : 'Choose your Moodle site in Settings.';
+    await set({ status: { ok: false, needsSetup: true, error, at: now } });
+    await updateBadge();
+    return;
+  }
   try {
-    const site = await getSite();
     const { events, via } = await fetchEvents();
     const tasks = merge(await get('tasks', {}), events.map((e) => normalise(e, site)), now);
     await set({ tasks, status: { ok: true, via, at: now } });
@@ -53,7 +64,7 @@ async function notifyOnce(key, title, message) {
 
 async function updateBadge() {
   const [status, tasks, { badgeDays }] = await Promise.all([get('status'), get('tasks', {}), getSettings()]);
-  if (status && !status.ok && status.needsLogin) {
+  if (status && !status.ok && (status.needsLogin || status.needsSetup)) {
     await chrome.action.setBadgeBackgroundColor({ color: '#c62828' });
     await chrome.action.setBadgeText({ text: '!' });
     return;
@@ -70,7 +81,7 @@ async function onAppRedirect(url, tabId) {
     if (await handleAppRedirect(url, tabId)) {
       chrome.notifications.create('connected', {
         type: 'basic', iconUrl: 'icons/icon128.png',
-        title: `Connected to ${new URL(await getSite()).host}`,
+        title: `Connected to ${siteName(await getSite())}`,
         message: 'Tasks now sync in the background, even after the site logs you out.',
       });
       await sync();
@@ -87,7 +98,8 @@ async function onAppRedirect(url, tabId) {
 chrome.webRequest.onBeforeRedirect.addListener(
   async (d) => {
     if (!d.redirectUrl?.startsWith('moodlemobile://')) return;
-    if (!d.url.startsWith(`${await getSite()}${LAUNCH_PATH}`)) return;
+    const site = await getSite();
+    if (!site || !d.url.startsWith(`${site}${LAUNCH_PATH}`)) return;
     onAppRedirect(d.redirectUrl, d.tabId);
   },
   { urls: [`https://*/*${LAUNCH_PATH}*`] },
@@ -97,7 +109,8 @@ chrome.notifications.onClicked.addListener(async (id) => {
   chrome.notifications.clear(id);
   if (id.startsWith('task:')) {
     const t = (await get('tasks', {}))[id.slice(5)];
-    if (t) chrome.tabs.create({ url: safeUrl(t.url, await getSite()) });
+    const site = await getSite();
+    if (t && site) chrome.tabs.create({ url: safeUrl(t.url, site) });
   } else if (id.startsWith('nag:')) {
     chrome.runtime.openOptionsPage();
   }
@@ -118,8 +131,7 @@ async function switchSite(oldSite, newSite) {
     throw new Error(`Permission for ${new URL(newSite).host} was not granted.`);
   }
   await remove(['auth', 'tasks', 'sent', 'status', 'nagged']);
-  const oldOrigin = new URL(oldSite).origin;
-  if (oldOrigin !== new URL(DEFAULT_SITE).origin && oldOrigin !== new URL(newSite).origin) {
+  if (oldSite && new URL(oldSite).origin !== new URL(newSite).origin) {
     await chrome.permissions.remove({ origins: [originPattern(oldSite)] }).catch(() => {});
   }
 }
