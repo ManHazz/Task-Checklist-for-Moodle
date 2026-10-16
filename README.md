@@ -60,8 +60,11 @@ Works in Chromium browsers. Takes about one minute.
    | Brave | `brave://extensions` |
    | Edge | `edge://extensions` |
 
-4. Turn on **Developer mode** and leave it on. Unpacked extensions stop working when it is off.
-5. Click **Load unpacked** and choose the unzipped folder.
+4. Turn on **Developer mode** (top right) and leave it on. Unpacked extensions stop working when it is off.
+5. Click **Load unpacked** (top left) and choose the unzipped folder: the one that contains `manifest.json`.
+
+   ![Brave extensions page: Developer mode toggle at top right, Load unpacked button at top left](docs/images/extensions-page.png)
+
 6. The setup page opens on its own. Continue below.
 
 ### First-time setup
@@ -97,6 +100,25 @@ Download the new release, replace the files in your folder, then click the reloa
 | *(empty)* | Nothing due soon. |
 | `3` | 3 open tasks are due within your badge window (default 3 days), including overdue ones. |
 | red `!` | Setup is needed, or the connection expired. Open the popup to fix it. |
+
+---
+
+## Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| **"Manifest file is missing or unreadable"** when loading | You picked the wrong folder. Choose the folder that directly contains `manifest.json`. Unzipping sometimes creates a folder inside a folder. |
+| **Extension disappeared or is greyed out** | Developer mode was turned off, or the folder was moved or deleted. Turn Developer mode back on, or load the folder again. |
+| **Connect opens a blank tab that stays open** | Close the tab, reload the extension on the extensions page, and click **Connect** again. If it still stays blank, your site may have the Moodle app turned off. See the last row. |
+| **Red `!` badge** | Open the popup and follow the message. Usually you need to choose a site, allow access, or click **Connect** again. |
+| **"Access to … was not allowed"** in Settings | You clicked **Block** on the permission prompt. Click **Save** again and choose **Allow**. |
+| **No reminders appear** | Allow notifications for your browser in your system settings (Windows: *Settings > System > Notifications*), and turn off Focus or Do Not Disturb. Check that at least one reminder time is ticked in **Settings**. |
+| **Tasks don't match the Dashboard** | Click **Sync**. The extension shows the same items as the Dashboard *Timeline* block, not every calendar event. |
+| **A task I submitted is still listed** | Click **Sync**. Moodle removes it from the timeline once the submission is complete. Drafts that are not submitted still count as open. |
+| **Your phone's Moodle app logged you out** | You revoked the key under *Security keys*. The app and the extension share it. Sign in again on both. |
+| **"Session expired" or nothing syncs, even after Connect** | Your site may have the Moodle app service turned off, so Connect cannot get a token. The extension then works only while you are logged in to the site in the same browser. |
+
+Still stuck? [Open an issue](https://github.com/ManHazz/Task-Checklist-for-Moodle/issues) with your browser name and the error text. Never paste your token.
 
 ---
 
