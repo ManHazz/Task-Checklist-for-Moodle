@@ -60,10 +60,12 @@ Works in Chromium browsers. Takes about one minute.
    | Brave | `brave://extensions` |
    | Edge | `edge://extensions` |
 
-4. Turn on **Developer mode** (top right) and leave it on. Unpacked extensions stop working when it is off.
-5. Click **Load unpacked** (top left) and choose the unzipped folder: the one that contains `manifest.json`.
+4. Turn on **Developer mode** and leave it on. Unpacked extensions stop working when it is off.
+5. Click **Load unpacked** and choose the unzipped folder: the one that contains `manifest.json`.
 
-   ![Brave extensions page: Developer mode toggle at top right, Load unpacked button at top left](docs/images/extensions-page.png)
+   ![Extensions page: Developer mode switch at top right, Load unpacked button at top left](docs/images/extensions-page.png)
+
+   *Shown in Brave. Chrome looks the same. In Edge, the Developer mode switch is in the left sidebar.*
 
 6. The setup page opens on its own. Continue below.
 
