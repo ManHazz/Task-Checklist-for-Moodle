@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Task Checklist for Moodle Settings</title>
+  <link rel="stylesheet" href="ui.css">
+  <style>
+    body { max-width: 560px; margin: 0 auto; padding: 24px 16px; }
+    h1 { font-size: 20px; margin: 0 0 16px; }
+    fieldset { border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 0 0 16px; }
+    legend { font-weight: 600; padding: 0 4px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 6px; }
+    label { display: flex; gap: 6px; align-items: center; }
+    .row { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+    #saved { color: var(--accent); }
+    #saved.err { color: var(--danger); }
+    #site { flex: 1; min-width: 220px; font: inherit; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+  </style>
+</head>
+<body>
+  <h1>Task Checklist for Moodle</h1>
+
+  <fieldset>
+    <legend>Moodle site</legend>
+    <label for="site">Site address</label>
+    <div class="row">
+      <input id="site" type="url" placeholder="https://ulearn.utp.edu.my" spellcheck="false">
+      <button id="resetSite" type="button">Use uLearn (UTP)</button>
+    </div>
+    <p class="muted">Any Moodle 4.x site with the Moodle app enabled works. Changing the site clears tasks and the connection for the old one.</p>
+  </fieldset>
+
+  <fieldset>
+    <legend>Connection</legend>
+    <div id="conn"></div>
+    <div class="row">
+      <button id="connect" class="primary">Connect</button>
+      <button id="disconnect">Disconnect</button>
+    </div>
+    <p class="muted">Connect signs in with your usual university login, the same way the Moodle app does. The token stays on this computer only. You can revoke it any time on the site under Preferences &gt; Security keys.</p>
+  </fieldset>
+
+  <fieldset>
+    <legend>Remind me before each deadline</legend>
+    <div id="offsets" class="grid"></div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Sync</legend>
+    <label>Check the site every
+      <select id="syncMinutes">
+        <option value="30">30 minutes</option>
+        <option value="60">1 hour</option>
+        <option value="120">2 hours</option>
+        <option value="240">4 hours</option>
+      </select>
+    </label>
+    <div class="row">
+      <label>Badge counts tasks due within
+        <select id="badgeDays">
+          <option value="1">1 day</option>
+          <option value="3">3 days</option>
+          <option value="7">7 days</option>
+        </select>
+      </label>
+    </div>
+  </fieldset>
+
+  <div class="row"><button id="save" class="primary">Save</button><span id="saved"></span></div>
+
+  <script type="module" src="options.js"></script>
+</body>
+</html>
